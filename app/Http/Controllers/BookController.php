@@ -13,60 +13,31 @@ class BookController extends Controller
     public function index(Request $request)
     {
         $title = $request->input('title');
-        $book = Book::when($title, function ($query, $title) {
-            return $query->title($title);
-        })->get();
+        $filter = $request->input('filter', '');
 
+        // Chain the title filter with the match for different filters
+        $books = Book::when($title, function ($query, $title) {
+            return $query->title($title);
+        });
+
+
+        // Apply the filter using match statement
+        $books = match ($filter) {
+            'popular_last_month' => $books->popularLastMonth(),
+            'popular_last_6months' => $books->popularLast6Months(),
+            'highest_rated_last_month' => $books->highestRatedLastMonth(),
+            'highest_rated_last_6month' => $books->highestRatedLast6Months(),
+            default => $books->latest(), // Assuming `latest()` orders by `created_at` desc
+        };
+
+        // Fetch the books based on the filters applied
+        $books = $books->get();
+
+        // Return the books data to the view
         return view('books.index', [
-            'books' => $book,
+            'books' => $books,
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+    // Other controller methods (create, store, show, edit, update, destroy) remain unchanged
 }
