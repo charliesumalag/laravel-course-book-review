@@ -39,5 +39,12 @@ class BookController extends Controller
         ]);
     }
 
-    // Other controller methods (create, store, show, edit, update, destroy) remain unchanged
+    public function show(Book $book)
+    {
+        return view('books.show', [
+            'book' => $book->load([
+                'reviews' => fn($query) => $query->latest()
+            ]),
+        ]);
+    }
 }
