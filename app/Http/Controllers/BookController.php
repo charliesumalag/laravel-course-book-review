@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class BookController extends Controller
 {
@@ -14,12 +15,10 @@ class BookController extends Controller
     {
         $title = $request->input('title');
         $filter = $request->input('filter', '');
-
         // Chain the title filter with the match for different filters
         $books = Book::when($title, function ($query, $title) {
             return $query->title($title);
         });
-
 
         // Apply the filter using match statement
         $books = match ($filter) {
@@ -30,8 +29,11 @@ class BookController extends Controller
             default => $books->latest(), // Assuming `latest()` orders by `created_at` desc
         };
 
+
         // Fetch the books based on the filters applied
-        $books = $books->get();
+        // $books = $books->get();
+        $cacheKey = 'books' . $filter . ':' . $title;
+        $books = cache()->remember($cacheKey, 3600, fn() => $books->get());
 
         // Return the books data to the view
         return view('books.index', [

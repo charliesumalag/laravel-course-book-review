@@ -11,6 +11,7 @@ class Book extends Model
 {
     use HasFactory;
 
+
     public function reviews()
     {
         return $this->hasMany(Review::class);
@@ -18,8 +19,10 @@ class Book extends Model
 
     public function scopeTitle(Builder $query, string $title): Builder
     {
+
         return $query->where('title', 'LIKE', '%' . $title . '%');
     }
+
 
     public function scopeWithReviewsCount(Builder $query, $from = null, $to = null): Builder|QueryBuilder
     {
