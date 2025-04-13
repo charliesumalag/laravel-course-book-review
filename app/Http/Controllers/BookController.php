@@ -32,10 +32,10 @@ class BookController extends Controller
 
         // Fetch the books based on the filters applied
         // $books = $books->get();
-        $cacheKey = 'books' . $filter . ':' . $title;
+        $cacheKey = 'books:' . $filter . ':' . $title;
         $books = cache()->remember($cacheKey, 3600, fn() => $books->get());
-
         // Return the books data to the view
+        // Cache::flush();
         return view('books.index', [
             'books' => $books,
         ]);
@@ -43,10 +43,13 @@ class BookController extends Controller
 
     public function show(Book $book)
     {
+        $cacheKey = 'book:' . $book->id;
+        $book = cache()->remember($cacheKey, 3600, fn() => $book->load([
+            'reviews' => fn($query) => $query->latest()
+        ]));
+
         return view('books.show', [
-            'book' => $book->load([
-                'reviews' => fn($query) => $query->latest()
-            ]),
+            'book' => $book,
         ]);
     }
 }
